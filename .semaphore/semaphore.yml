@@ -24,7 +24,7 @@ blocks:
         - name: RAILS_ENV
           value: test
         - name: NODE_ENV
-          value: tes
+          value: test
         - name: TEST_BOOSTERS_RSPEC_TEST_FILE_PATTERN
           value: "spec/system/**/*_spec.rb"
       prologue:

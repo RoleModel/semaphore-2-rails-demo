@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Basic', type: :system, chrome: true do
+RSpec.describe 'Basic', type: :system, js: true do
   it 'can render react' do
     visit styleguide_path
     binding.pry
