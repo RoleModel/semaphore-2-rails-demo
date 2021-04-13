@@ -20,7 +20,7 @@ blocks:
           os_image: ubuntu1804
       env_vars:
         - name: TEST_DATABASE_URL
-          value: postgres://postgres:@0.0.0.0/ninja_master_test
+          value: postgres://postgres:@0.0.0.0/semaphore_2_rails_demo_test
         - name: RAILS_ENV
           value: test
         - name: HONEYBADGER_SOURCE_MAP_DISABLED
