@@ -33,7 +33,7 @@ blocks:
       prologue:
         commands:
           - checkout
-          - sem-service start postgres
+          - sem-service start postgres --username=postgres
           - sem-version ruby $(cat .ruby-version)
           - sem-version node $(cat .node-version)
           - gem install bundler --no-document
