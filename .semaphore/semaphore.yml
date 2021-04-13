@@ -9,24 +9,27 @@ auto_cancel:
     when: "branch != 'master'"
 
 blocks:
-
   - name: Build
+    dependencies: []
     execution_time_limit:
-      minutes: 10
+      minutes: 20
     task:
       agent:
         machine:
           type: e1-standard-2
           os_image: ubuntu1804
       env_vars:
-        # - name: TEST_DATABASE_URL
-        #   value: postgres://postgres:@0.0.0.0/ninja_master_test
+        - name: TEST_DATABASE_URL
+          value: postgres://postgres:@0.0.0.0/semaphore_2_rails_demo_test
         - name: RAILS_ENV
           value: test
-        - name: NODE_ENV
-          value: tes
-        - name: TEST_BOOSTERS_RSPEC_TEST_FILE_PATTERN
-          value: "spec/system/**/*_spec.rb"
+        - name: HONEYBADGER_SOURCE_MAP_DISABLED
+          value: "true"
+        - name: TZ
+          value: America/New_York
+        - name: GOOGLE_MAPS_API_KEY
+          value: AIzninjamaster
+
       prologue:
         commands:
           - checkout
@@ -37,152 +40,21 @@ blocks:
           - npm i -g yarn
           - bundle config set deployment 'true'
           - bundle config set path 'vendor/bundle'
-          # - cache restore gems-$(checksum .ruby-version)-$(checksum Gemfile.lock),gems-$(checksum .ruby-version)-,gems-
-          # - cache restore yarn-$(checksum .node-version)-$(checksum yarn.lock),yarn-$(checksum .node-version)-,yarn-
-          # - cache restore
-
+          - cache restore gems-$(checksum .ruby-version)-$(checksum Gemfile.lock)
+          - cache restore yarn-cache-$(checksum .node-version)-$(checksum yarn.lock)
+          - cache restore yarn-node-modules-$(checksum .node-version)-$(checksum yarn.lock)
 
       jobs:
-        - name: Install Dependencies
+        - name: Install Dependencies, Run Tests
           commands:
-
-            # - bundle check || bundle install
-            # - yarn install --check-files || yarn install
-            - bundle install
-            - yarn install
-
+            - bundle check || bundle install
+            - yarn check || yarn install
             - bundle exec rails db:setup db:test:prepare
-            - bin/rails webpacker:compile
-            # - bundle exec rspec spec/system/event_management_spec.rb
-      # epilogue:
-      #   commands:
-          # - cache delete gems-$(checksum .ruby-version)-$(checksum Gemfile.lock)
-          # - cache delete gems-$(checksum .ruby-version)-
-          # - cache delete gems-
-          # - cache delete yarn-$(checksum .node-version)-$(checksum yarn.lock)
-          # - cache delete yarn-$(checksum .node-version)-
-          # - cache delete yarn-
-          # - cache store gems-$(checksum .ruby-version)-$(checksum Gemfile.lock) vendor/bundle
-          # - cache store yarn-$(checksum .node-version)-$(checksum yarn.lock) node_modules
-          # - cache store yarn-$(checksum .node-version)-$(checksum yarn.lock) node_modules
-          # - cache store
-  #
-  # - name: Style Checks
-  #   task:
-  #     agent:
-  #       machine:
-  #         type: e1-standard-2
-  #         os_image: ubuntu1804
-  #     prologue:
-  #       commands:
-  #         - checkout
-  #         - sem-version ruby $(cat .ruby-version)
-  #         - sem-version node $(cat .node-version)
-  #         - gem install bundler --no-document
-  #         - bundle config set deployment 'true'
-  #         - bundle config set path 'vendor/bundle'
-  #         # - cache restore gems-$(checksum .ruby-version)-$(checksum Gemfile.lock) #,gems-$(checksum .ruby-version)-,gems-
-  #         - cache restore
-  #         - bundle check || bundle install
-  #         # - cache restore yarn-$(checksum .node-version)-$(checksum yarn.lock) #,yarn-$(checksum .node-version)-,yarn-
-  #
-  #     jobs:
-  #       - name: Linters
-  #         commands:
-  #           - bundle exec rubocop --fail-level warning --display-only-fail-level-offenses
-  #           - yarn run eslint
-  #           - yarn run stylelint
-  #
-  # - name: Unit Tests
-  #   execution_time_limit:
-  #     minutes: 20
-  #   task:
-  #     agent:
-  #       machine:
-  #         type: e1-standard-8
-  #         os_image: ubuntu1804
-  #     env_vars:
-  #       - name: TEST_DATABASE_URL
-  #         value: postgres://postgres:@0.0.0.0/ninja_master_test
-  #       - name: RAILS_ENV
-  #         value: test
-  #       - name: NODE_ENV
-  #         value: test
-  #       - name: HONEYBADGER_SOURCE_MAP_DISABLED
-  #         value: "true"
-  #       - name: TEST_BOOSTERS_RSPEC_TEST_FILE_PATTERN
-  #         value: "spec/models/*_spec.rb"
-  #     prologue:
-  #       commands:
-  #         - checkout
-  #         - sem-service start postgres
-  #         - sem-version ruby $(cat .ruby-version)
-  #         - sem-version node $(cat .node-version)
-  #         - gem install bundler --no-document
-  #         - bundle config set deployment 'true'
-  #         - bundle config set path 'vendor/bundle'
-  #         - cache restore
-  #         # - cache restore gems-$(checksum .ruby-version)-$(checksum Gemfile.lock),gems-$(checksum .ruby-version)-,gems-
-  #         - bundle check || bundle install
-  #         # - cache restore yarn-$(checksum .node-version)-$(checksum yarn.lock),yarn-$(checksum .node-version)-,yarn-
-  #         - bundle exec rails db:setup db:test:prepare
-  #
-  #     jobs:
-  #       - name: Ruby Unit Tests
-  #         parallelism: 7
-  #         commands:
-  #           - gem install semaphore_test_boosters
-  #           - rspec_booster --job $SEMAPHORE_JOB_INDEX/$SEMAPHORE_JOB_COUNT
-  #           # - bundle exec rspec --format documentation --exclude-pattern="spec/system/**/*_spec.rb"
-  #
-  #       - name: JS Tests
-  #         commands:
-  #           - yarn test_ci
-  #
-  # - name: Integration Tests
-  #   execution_time_limit:
-  #     minutes: 20
-  #   task:
-  #     agent:
-  #       machine:
-  #         type: e1-standard-8
-  #         os_image: ubuntu1804
-  #     env_vars:
-  #       - name: TEST_DATABASE_URL
-  #         value: postgres://postgres:@0.0.0.0/ninja_master_test
-  #       - name: RAILS_ENV
-  #         value: test
-  #       - name: NODE_ENV
-  #         value: test
-  #       - name: HONEYBADGER_SOURCE_MAP_DISABLED
-  #         value: "true"
-  #       - name: TEST_BOOSTERS_RSPEC_TEST_FILE_PATTERN
-  #         value: "spec/system/**/*_spec.rb"
-  #     prologue:
-  #       commands:
-  #         - checkout
-  #         - sem-service start postgres
-  #         - sem-version ruby $(cat .ruby-version)
-  #         - sem-version node $(cat .node-version)
-  #         - gem install bundler --no-document
-  #         - bundle config set deployment 'true'
-  #         - bundle config set path 'vendor/bundle'
-  #         - cache restore
-  #         # - cache restore gems-$(checksum .ruby-version)-$(checksum Gemfile.lock),gems-$(checksum .ruby-version)-,gems-
-  #         - bundle check || bundle install
-  #         # - cache restore yarn-$(checksum .node-version)-$(checksum yarn.lock),yarn-$(checksum .node-version)-,yarn-
-  #         - bundle exec rails db:setup db:test:prepare
-  #         - bin/rails webpacker:compile
-  #
-  #     jobs:
-  #       - name: System Tests
-  #         parallelism: 8
-  #         commands:
-  #           - gem install semaphore_test_boosters
-  #           - rspec_booster --job $SEMAPHORE_JOB_INDEX/$SEMAPHORE_JOB_COUNT
-  #
-  #     epilogue:
-  #       on_fail:
-  #         commands:
-  #           - artifact push job log/test.log
-  #           - artifact push job tmp/screenshots
+            - bundle exec rails webpacker:compile
+            - bundle exec rake
+      epilogue:
+        on_fail:
+          commands:
+            - artifact push job log/test.log
+            - artifact push job tmp/screenshots
+            - ls spec/e2e/screenshots
